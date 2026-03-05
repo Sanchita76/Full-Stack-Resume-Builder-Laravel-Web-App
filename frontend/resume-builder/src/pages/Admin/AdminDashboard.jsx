@@ -169,6 +169,13 @@ const AdminDashboard = () => {
   const handleDataChange = () => {
     fetchUsers(pagination.currentPage, searchQuery);
     fetchStats();
+
+    // ✅ Force image cache clear
+  const images = document.querySelectorAll('img[alt*="Profile"]');
+  images.forEach(img => {
+    const src = img.src.split('?')[0]; // Remove old timestamp
+    img.src = `${src}?t=${Date.now()}`; // Add new timestamp
+  });
   };
 
   useEffect(() => {
@@ -398,6 +405,7 @@ const AdminDashboard = () => {
                           {/* ✅ Use UserAvatar component */}
                           <div className="mr-3">
                               <UserAvatar user={user} size="sm" />
+                              
                           </div>
                           <span className="text-sm font-medium text-gray-900">
                             {user.name}

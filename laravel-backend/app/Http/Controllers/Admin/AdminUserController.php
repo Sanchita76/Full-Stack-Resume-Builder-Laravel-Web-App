@@ -47,6 +47,8 @@ class AdminUserController extends Controller
                     'email' => $user->email,
                     'role' => $user->role,
                     'profileImageUrl' => $user->profile_image_url,
+                    'profile_image_url' => $user->profile_image_url, // ✅ ALSO INCLUDE SNAKE_CASE FOR COMPATIBILITY
+                    'resumeCount' => $user->resumes()->count(),
                     'createdAt' => $user->created_at,
                     'updatedAt' => $user->updated_at,
                     'resumeCount' => $user->resumes()->count(), // Count of resumes

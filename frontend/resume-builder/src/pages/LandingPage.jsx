@@ -12,6 +12,7 @@ import { useContext } from 'react';
 import ProfileInfoCard from '../components/Cards/ProfileInfoCard';
 import Footer from './Footer';
 import Design from './Design';
+import ForgotPassword from './Auth/ForgotPassword'; // ✅ NEW
 
  // ✅ This one is only for template carousel (not related to main CTA)
   const handleTemplateTry = (templateId) => {
@@ -130,7 +131,7 @@ const LandingPage=() => {
             Made with ❤︎.... Happy Coding!
            </div>
 
-           <Modal
+           {/* <Modal  forgot password
            isOpen={openAuthModal}
            onClose={()=>{
             setOpenAuthModal(false);
@@ -144,7 +145,57 @@ const LandingPage=() => {
                     <SignUp setCurrentPage={setCurrentPage}/>
                 )}
             </div>
-           </Modal>
+           </Modal> */}
+
+           {/* ✅ UPDATED: Auth Modal with Forgot Password */}
+            <Modal 
+                isOpen={openAuthModal} 
+                onClose={() => {
+                    setOpenAuthModal(false);
+                    setCurrentPage("login"); // Reset to login when closing
+                }}
+                title={
+                    currentPage === "login" ? "Login" : 
+                    currentPage === "signup" ? "Sign Up" : 
+                    "Forgot Password"
+                }
+            >
+                
+                {/* {currentPage === "login" ? (
+                    <Login 
+                        setCurrentPage={setCurrentPage}
+                        onSwitchToForgotPassword={() => setCurrentPage("forgot")} // ✅ NEW
+                    />
+                ) : currentPage === "signup" ? (
+                    <SignUp 
+                        setCurrentPage={setCurrentPage}
+                    />
+                ) : (
+                    <ForgotPassword 
+                        onBackToLogin={() => setCurrentPage("login")} // ✅ NEW
+                    />
+                )} */}
+                <div className="w-full max-w-sm mx-auto p-2"> 
+    <div className="flex flex-col gap-3"> {/* Use a small gap to reduce vertical height */}
+        {currentPage === "login" ? (
+            <Login 
+                setCurrentPage={setCurrentPage}
+                onSwitchToForgotPassword={() => setCurrentPage("forgot")} 
+            />
+        ) : currentPage === "signup" ? (
+            <SignUp 
+                setCurrentPage={setCurrentPage}
+            />
+        ) : (
+            <ForgotPassword 
+                onBackToLogin={() => setCurrentPage("login")} 
+            />
+        )}
+    </div>
+</div>
+            </Modal>
+
+
               <Footer/>
         </div>
     );

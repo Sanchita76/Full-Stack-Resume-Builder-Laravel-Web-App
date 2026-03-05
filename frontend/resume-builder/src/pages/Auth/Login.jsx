@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
 import {API_PATHS} from '../../utils/apiPaths';
 
-const Login =({setCurrentPage }) => {
+const Login =({setCurrentPage,onSwitchToForgotPassword }) => { //✅ ADD onSwitchToForgotPassword prop
   const [email,setEmail]=useState("");
   const [password,setPassword]=useState("");
   const [role, setRole] = useState("user"); // ✅ ADD THIS (optional)
@@ -149,6 +149,28 @@ const Login =({setCurrentPage }) => {
         placeholder="Min 8 characters"
         type="password"
       />
+
+
+       {/* ✅ NEW: Forgot Password Link */}
+        <div className="flex justify-end mb-2">
+          {/* <button
+            type="button"
+            onClick={onSwitchToForgotPassword}
+            className="text-xs text-purple-600 hover:text-purple-700 font-medium hover:underline"
+          >
+            Forgot Password?
+          </button> */}
+          <button
+  type="button"
+  onClick={onSwitchToForgotPassword}
+  className="flex w-full items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-purple-600 transition-all duration-200 bg-white border border-purple-200 rounded-md hover:bg-purple-50 hover:border-purple-400 hover:text-purple-700 active:bg-purple-100 active:scale-[0.98] shadow-sm hover:shadow-md"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+  Forgot Password?
+</button>
+        </div>
 
       {error && <p className="text-red-500 text-xs">{error}</p>}
 

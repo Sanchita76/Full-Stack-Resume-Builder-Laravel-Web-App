@@ -44,6 +44,11 @@ export const API_PATHS = {
         REGISTER: "/api/auth/register",
         LOGIN: "/api/auth/login",
         GET_PROFILE: "/api/auth/profile",
+        // ✅ ADD THIS LINE
+        FORGOT_PASSWORD: "/api/auth/forgot-password", // ✅ NEW
+        VERIFY_OTP: "/api/auth/verify-otp", // ✅ NEW
+        RESEND_OTP: "/api/auth/resend-otp", // ✅ NEW
+        RESET_PASSWORD: "/api/auth/reset-password", // ✅ NEW
     },
     RESUME: {
         CREATE: "/api/resume",

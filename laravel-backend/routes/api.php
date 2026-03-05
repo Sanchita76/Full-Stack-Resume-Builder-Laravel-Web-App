@@ -75,6 +75,13 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/upload-image', [AuthController::class, 'uploadImage']);
+
+
+    // ✅ NEW: Forgot Password routes
+    Route::post('/forgot-password', [AuthController::class, 'sendOtp']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     
     // Protected route
     Route::middleware('auth:sanctum')->group(function () {
@@ -122,4 +129,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     // ✅ ADD THIS LINE - Admin upload images
     // Route::put('/resumes/{id}/upload-images', [AdminResumeController::class, 'uploadResumeImages']); fixing thumbnail
     Route::post('/resumes/{id}/upload-images', [AdminResumeController::class, 'uploadResumeImages']);
+});
+
+Route::get('/test',function(){
+    return response()->json(['message'=>'API is working']);
+    return response()->json(['message'=>'API is working']);
+    console.log('API is working');
 });

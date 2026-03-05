@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Models\PasswordResetOtp;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -237,4 +240,269 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+
+
+    //for password reset, we will generate OTP and send it to user's email
+
+// ... existing methods ...
+
+/**
+ * Send OTP to email for password reset
+ * 
+ * @route POST /api/auth/forgot-password
+ * @access Public
+ */
+public function sendOtp(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        // Check if user exists and is NOT an admin
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'No account found with this email address.'
+            ], 404);
+        }
+
+        // ✅ Block admins from using forgot password
+        if ($user->role === 'admin') {
+            return response()->json([
+                'message' => 'Password reset is not available for admin accounts. Please contact support.'
+            ], 403);
+        }
+
+        // Generate 6-digit OTP
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Delete any existing OTPs for this email
+        PasswordResetOtp::where('email', $request->email)->delete();
+
+        // Create new OTP (valid for 10 minutes)
+        PasswordResetOtp::create([
+            'email' => $request->email,
+            'otp' => $otp,
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        // Send email
+        Mail::raw(
+            "Your password reset OTP is: {$otp}\n\n" .
+            "This OTP is valid for 10 minutes.\n\n" .
+            "If you didn't request this, please ignore this email.\n\n" .
+            "Best regards,\n" .
+            config('app.name'),
+            function ($message) use ($request) {
+                $message->to($request->email)
+                    ->subject('Password Reset OTP - ' . config('app.name'));
+            }
+        );
+
+        return response()->json([
+            'message' => 'OTP sent successfully! Please check your email.',
+            'expiresIn' => 600, // 10 minutes in seconds
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to send OTP. Please try again.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
+
+/**
+ * Verify OTP
+ * 
+ * @route POST /api/auth/verify-otp
+ * @access Public
+ */
+public function verifyOtp(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        // Find the OTP
+        $otpRecord = PasswordResetOtp::where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->where('is_used', false)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$otpRecord) {
+            return response()->json([
+                'message' => 'Invalid OTP. Please try again.'
+            ], 400);
+        }
+
+        // Check if expired
+        if ($otpRecord->expires_at->isPast()) {
+            return response()->json([
+                'message' => 'OTP has expired. Please request a new one.'
+            ], 400);
+        }
+
+        // Mark as used
+        $otpRecord->markAsUsed();
+
+        // Generate a reset token (valid for 15 minutes)
+        $resetToken = Str::random(64);
+        
+        // Store in password_reset_tokens table
+        \DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'token' => Hash::make($resetToken),
+                'created_at' => now()
+            ]
+        );
+
+        return response()->json([
+            'message' => 'OTP verified successfully!',
+            'resetToken' => $resetToken,
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to verify OTP.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Resend OTP
+ * 
+ * @route POST /api/auth/resend-otp
+ * @access Public
+ */
+public function resendOtp(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        // Check if there's a recent OTP (less than 10 minutes old)
+        $recentOtp = PasswordResetOtp::where('email', $request->email)
+            ->where('created_at', '>', now()->subMinutes(10))
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($recentOtp && !$recentOtp->is_used) {
+            $remainingSeconds = now()->diffInSeconds($recentOtp->created_at->addMinutes(10));
+            
+            return response()->json([
+                'message' => 'Please wait before requesting a new OTP.',
+                'remainingSeconds' => $remainingSeconds,
+            ], 429); // Too Many Requests
+        }
+
+        // Use the same logic as sendOtp
+        return $this->sendOtp($request);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to resend OTP.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Reset password with token
+ * 
+ * @route POST /api/auth/reset-password
+ * @access Public
+ */
+public function resetPassword(Request $request)
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 400);
+        }
+
+        // Find reset token
+        $resetRecord = \DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$resetRecord) {
+            return response()->json([
+                'message' => 'Invalid reset token.'
+            ], 400);
+        }
+
+        // Verify token
+        if (!Hash::check($request->token, $resetRecord->token)) {
+            return response()->json([
+                'message' => 'Invalid reset token.'
+            ], 400);
+        }
+
+        // Check if token is expired (15 minutes)
+        if (now()->diffInMinutes($resetRecord->created_at) > 15) {
+            return response()->json([
+                'message' => 'Reset token has expired.'
+            ], 400);
+        }
+
+        // Update password
+        $user = User::where('email', $request->email)->first();
+        $user->update([
+            'password' => Hash::make($request->password)
+        ]);
+
+        // Delete the reset token
+        \DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json([
+            'message' => 'Password reset successfully! You can now login with your new password.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to reset password.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+}
+
+
+
+
+
