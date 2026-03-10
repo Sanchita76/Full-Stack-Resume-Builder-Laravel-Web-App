@@ -25,6 +25,10 @@
 
 **IntelliResume** is a **FullStack ATS-Friendly Resume Builder** application built with **Laravel 12 + React.js**, designed to simplify the resume creation process with enterprise-grade features.
 
+### MERN Stack version 
+Link : https://github.com/Sanchita76/Resume-Builder.git<br>
+Visit : https://intelliresume123.netlify.app/
+
 ### Key Capabilities:
 - **Admin & User Role Management** - Multi-tier access control with promote/demote functionality
 - **ATS-Friendly Templates** - Choose from multiple professionally designed templates
