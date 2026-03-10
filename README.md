@@ -1,6 +1,7 @@
 <div align="center">
 
 # IntelliResume 📝: ATS Resume Builder
+Live URL :https://intelliresume-laravel.netlify.app/
 
 *Get ATS-Friendly Professional Resumes Instantly!*
 
@@ -25,9 +26,13 @@
 
 **IntelliResume** is a **FullStack ATS-Friendly Resume Builder** application built with **Laravel 12 + React.js**, designed to simplify the resume creation process with enterprise-grade features.
 
-### MERN Stack version 
+### MERN Stack version (Old) 
 Link : https://github.com/Sanchita76/Resume-Builder.git<br>
 Visit : https://intelliresume123.netlify.app/
+
+---
+
+Live URL : https://intelliresume-laravel.netlify.app/
 
 ### Key Capabilities:
 - **Admin & User Role Management** - Multi-tier access control with promote/demote functionality
