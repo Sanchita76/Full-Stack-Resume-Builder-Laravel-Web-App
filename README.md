@@ -1,7 +1,6 @@
 <div align="center">
 
 # IntelliResume 📝: ATS Resume Builder
-Live URL :https://intelliresume-laravel.netlify.app/
 
 *Get ATS-Friendly Professional Resumes Instantly!*
 
@@ -32,7 +31,7 @@ Visit : https://intelliresume123.netlify.app/
 
 ---
 
-Live URL : https://intelliresume-laravel.netlify.app/
+(New) Live URL : https://intelliresume-laravel.netlify.app/
 
 ### Key Capabilities:
 - **Admin & User Role Management** - Multi-tier access control with promote/demote functionality
